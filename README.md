@@ -248,3 +248,19 @@ Use **Kernel → Restart & Run All** to execute the notebook top-to-bottom with 
 
 
 *23CSE301 Machine Learning Capstone | B.Tech. CSE III Year | Academic Year 2026–27*
+
+## GUI Application
+
+This project includes a local Streamlit web application that demonstrates the Regression, Classification, and Clustering modules interactively.
+
+To run the application locally:
+
+```bash
+streamlit run app/app.py
+```
+
+**Available Sections:**
+- **Regression**: Predict airfoil sound pressure level based on aerodynamic input features.
+- **Classification**: Predict fetal state (Normal, Suspect, Pathologic) from CTG exams.
+- **Clustering**: Unsupervised grouping of seismic bump events using K-Means and Agglomerative clustering with PCA visualization.
+
