@@ -37,21 +37,21 @@ A complete, end-to-end Machine Learning pipeline built as part of the 23CSE301 c
 
 ```
 ML_CAPSTONE/
-│
-├── README.md                   ← This file
-├── requirements.txt            ← All Python dependencies with versions
-│
-├── data/
-│   ├── airfoil_self_noise.dat  ← Regression dataset (UCI ML Repository)
-│   └── CTG.xls                 ← Classification dataset (UCI ML Repository)
-│
-├── notebooks/
-│   ├── regression.ipynb        ← Regression track (Review 1)
-│   ├── classification.ipynb    ← Classification track (Review 1 Part A + Review 2 Part B)
-│   └── clustering.ipynb        ← Clustering track (Review 2)  [in progress]
-│
-└── models/
-    └── (saved .pkl model files — optional)
+|-- README.md
+|-- requirements.txt            <- pip dependencies
+|-- environment.yml             <- conda environment
+|-- .gitignore
+|-- data/
+|   |-- airfoil_self_noise.dat  <- Regression dataset (UCI)
+|   |-- CTG.xls                 <- Classification dataset (UCI)
+|   `-- seismic-bumps.arff      <- Clustering dataset (UCI)
+|-- notebooks/
+|   |-- regression.ipynb
+|   |-- classification.ipynb    <- Part A + Part B + final model selection
+|   `-- clustering.ipynb        <- K-Means + Agglomerative
+|-- models/                     <- saved .pkl models used by the GUI
+|-- app/app.py                  <- Streamlit GUI
+`-- team_contribution/          <- individual member notebooks
 ```
 
 ---
@@ -106,6 +106,17 @@ ML_CAPSTONE/
 
 > **Note:** Class imbalance is present. ROC-AUC (One-vs-Rest, weighted) is used as the primary discrimination metric.
 
+### 3. Seismic Bumps - Clustering Track
+
+| Property | Value |
+|----------|-------|
+| **Source** | [UCI Machine Learning Repository](https://archive.ics.uci.edu/dataset/162/seismic+bumps) |
+| **File** | `data/seismic-bumps.arff` |
+| **Observations** | 2,584 rows, 18 features (14 numeric, 4 categorical) |
+| **Ground truth** | `class` (hazardous bump 0/1) - excluded from fitting, used only for post-hoc interpretation |
+| **Missing values / duplicates** | 0 / 6 (kept) |
+| **Preprocessing** | `StandardScaler` on numeric + `OneHotEncoder` on categorical -> 24 features |
+
 ---
 
 ## Results Summary
@@ -131,30 +142,35 @@ All 10 models trained on the same 80/20 train-test split (`random_state=42`). Fe
 
 ---
 
-### Classification Track — CTG Dataset (Review 1, Part A)
+### Classification Track - CTG Dataset (Review 1 Part A + Review 2 Part B)
 
-All 5 Part A models trained on the same 80/20 stratified split (`random_state=42`). Features standardised where required (Logistic Regression, KNN, SVC).
+All 10 models use the same 80/20 stratified split (`random_state=42`). Precision/Recall/F1 are weighted averages; ROC-AUC is One-vs-Rest weighted. Values come from the consolidated table in `classification.ipynb`.
 
-| # | Model | Accuracy | Precision (macro) | Recall (macro) | F1 (macro) | ROC-AUC (OvR, weighted) |
-|---|-------|----------|-------------------|----------------|------------|-------------------------|
-| 1 | Logistic Regression | 0.8850 | 0.8025 | 0.7603 | 0.7767 | computed in notebook |
-| 2 | Gaussian Naive Bayes | — | — | — | — | computed in notebook |
-| 3 | Decision Tree | 0.9178 | 0.8429 | 0.8348 | 0.8379 | computed in notebook |
-| 4 | KNN | — | — | — | — | computed in notebook |
-| 5 | SVC | — | — | — | — | computed in notebook |
+| # | Model | Accuracy | Precision | Recall | F1 | ROC-AUC |
+|---|-------|----------|-----------|--------|----|---------|
+| 1 | Logistic Regression | 0.8850 | 0.8879 | 0.8850 | 0.8852 | 0.9646 |
+| 2 | KNN | 0.8826 | 0.8732 | 0.8826 | 0.8753 | 0.9453 |
+| 3 | Gaussian Naive Bayes | 0.8146 | 0.8685 | 0.8146 | 0.8310 | 0.9288 |
+| 4 | Decision Tree | 0.9178 | 0.9164 | 0.9178 | 0.9167 | 0.8897 |
+| 5 | SVC | 0.8967 | 0.8917 | 0.8967 | 0.8924 | 0.9633 |
+| 6 | Random Forest | 0.9319 | 0.9290 | 0.9319 | 0.9288 | 0.9846 |
+| 7 | AdaBoost | 0.9108 | 0.9070 | 0.9108 | 0.9080 | 0.9488 |
+| 8 | **Gradient Boosting** | 0.9460 | 0.9447 | 0.9460 | 0.9442 | 0.9740 |
+| 9 | Bagging | 0.9296 | 0.9280 | 0.9296 | 0.9274 | 0.9728 |
+| 10 | MLP | 0.9225 | 0.9221 | 0.9225 | 0.9222 | 0.9772 |
 
-> Full metric values (including ROC-AUC) are displayed in the consolidated Part A comparison table within `classification.ipynb` after running all cells.
-
-> **Part B** (Random Forest, AdaBoost, Gradient Boosting, Bagging, MLP) + the 10-algorithm consolidated table will be presented in **Review 2**.
+> **Final model: Gradient Boosting** - highest Accuracy and weighted F1. Random Forest has the best ROC-AUC and is the runner-up. Justification and trade-offs are in the "Final Model Selection" section of the notebook.
 
 ---
 
-### Clustering Track (Review 2 — In Progress)
+### Clustering Track - Seismic Bumps (Review 2)
 
-| Algorithm | Silhouette Score | Davies-Bouldin Index | Calinski-Harabasz Index |
-|-----------|-----------------|----------------------|------------------------|
-| K-Means | TBD | TBD | TBD |
-| Agglomerative Hierarchical | TBD | TBD | TBD |
+| Algorithm | K | Silhouette | Davies-Bouldin | Calinski-Harabasz | Cluster sizes |
+|-----------|---|-----------|----------------|-------------------|---------------|
+| K-Means | 2 | 0.4702 | 1.6817 | 604.39 | 403 / 2,181 |
+| Agglomerative (Ward) | 2 | 0.8320 | 0.4258 | 577.21 | 2,572 / 12 |
+
+> The Agglomerative silhouette is inflated: the split isolates only 12 outlier points. K-Means gives the more informative segmentation. The notebook includes the elbow curve, dendrogram, PCA scatter plots for both algorithms and t-SNE plots.
 
 ---
 
@@ -187,6 +203,11 @@ source venv/bin/activate
 **Step 3 — Install all dependencies:**
 ```bash
 pip install -r requirements.txt
+```
+Or, with conda:
+```bash
+conda env create -f environment.yml
+conda activate ml-capstone
 ```
 
 **Key dependencies:**
@@ -234,7 +255,7 @@ Use **Kernel → Restart & Run All** to execute the notebook top-to-bottom with 
 ### Regression (10 algorithms)
 `LinearRegression` · `Ridge` · `Lasso` · `ElasticNet` · `PolynomialRegression` · `KNeighborsRegressor` · `SVR` · `DecisionTreeRegressor` · `RandomForestRegressor` · `GradientBoostingRegressor`
 
-### Classification (10 algorithms — Part B pending Review 2)
+### Classification (10 algorithms)
 **Part A:** `LogisticRegression` · `KNeighborsClassifier` · `GaussianNB` · `DecisionTreeClassifier` · `SVC`
 
 **Part B:** `RandomForestClassifier` · `AdaBoostClassifier` · `GradientBoostingClassifier` · `BaggingClassifier` · `MLPClassifier`
