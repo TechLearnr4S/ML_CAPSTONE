@@ -272,16 +272,18 @@ Use **Kernel → Restart & Run All** to execute the notebook top-to-bottom with 
 
 ## GUI Application
 
-This project includes a local Streamlit web application that demonstrates the Regression, Classification, and Clustering modules interactively.
-
-To run the application locally:
+A tabbed Streamlit dashboard (`app/app.py`) demonstrates all three tracks plus the benchmark results.
 
 ```bash
+pip install -r requirements.txt
 streamlit run app/app.py
 ```
 
-**Available Sections:**
-- **Regression**: Predict airfoil sound pressure level based on aerodynamic input features.
-- **Classification**: Predict fetal state (Normal, Suspect, Pathologic) from CTG exams.
-- **Clustering**: Unsupervised grouping of seismic bump events using K-Means and Agglomerative clustering with PCA visualization.
+| Tab | What it does |
+|-----|--------------|
+| **Airfoil Noise (Regression)** | Enter airfoil geometry and flow conditions; the saved Random Forest predicts the sound pressure level (dB). |
+| **Fetal State (Classification)** | Enter the 21 CTG measurements (or load a Normal / Suspect / Pathologic example); the final Gradient Boosting model returns the class with probabilities. |
+| **Seismic Segmentation (Clustering)** | Assign a new seismic event to a K-Means / Agglomerative segment and see it on the PCA projection of all 2,584 records. |
+| **Benchmarks & Model Evaluation** | 10-model classification comparison (chart + table), regression actual-vs-predicted plot, 10-model regression table and the clustering metrics. |
 
+The header KPIs (R², accuracy, clusters, records) are computed live from the saved models and the bundled datasets. The final classifier can be re-exported with `python scripts/export_final_classifier.py`.
